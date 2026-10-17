@@ -35,12 +35,19 @@ jobs:
           pip install cython==0.29.36
           pip install git+https://github.com/kivy/buildozer.git
 
-      - name: Accept Licenses and Build APK
+      - name: Setup Runner Android SDK & Build APK
         run: |
-          # تایید قطعی لایسنس‌های اندروید سرور
+          # ۱. قبول کردن تمام لایسنس‌های SDK گیت‌هاب
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          
-          # اجرای بیلدوزر با استفاده از SDK آماده سرور
+
+          # ۲. نصب مستقیم ابزارهای بیلد ۳۳ و پلتفرم برای جلوگیری از دانلود مجدد
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33"
+
+          # ۳. معرفی مسیر SDK آماده گیت‌هاب به بیلدوزر تا اصلاً دانلود نکنه
+          sed -i 's|# android.sdk_path =.*|android.sdk_path = '"$ANDROID_HOME"'|g' buildozer.spec
+          sed -i 's|# android.ndk_path =.*|android.ndk_path = '"$ANDROID_NDK_LATEST_HOME"'|g' buildozer.spec
+
+          # ۴. اجرای بیلدوزر
           buildozer -v android debug
 
       - name: Upload APK
