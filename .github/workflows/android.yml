@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -35,13 +35,13 @@ jobs:
           pip install cython==0.29.36
           pip install git+https://github.com/kivy/buildozer.git
 
-      - name: Accept Android Licenses and Build APK
+      - name: Accept Licenses and Build APK
         run: |
-          unset ANDROID_NDK_HOME
-          unset ANDROID_NDK_ROOT
-          unset ANDROID_NDK_LATEST_HOME
-          # ارسال اتوماتیک Y برای پذیرش لایسنس‌ها
-          yes | buildozer -v android debug
+          # تایید قطعی لایسنس‌های اندروید سرور
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          
+          # اجرای بیلدوزر با استفاده از SDK آماده سرور
+          buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
