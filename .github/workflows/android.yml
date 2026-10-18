@@ -1,68 +1,18 @@
-name: Build Android APK
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Set up Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          python3-pip \
-          build-essential \
-          git \
-          python3-dev \
-          ffmpeg \
-          libsdl2-dev \
-          libsdl2-image-dev \
-          libsdl2-mixer-dev \
-          libsdl2-ttf-dev \
-          libportmidi-dev \
-          libswscale-dev \
-          libavformat-dev \
-          libavcodec-dev \
-          zlib1g-dev
-        pip install --upgrade pip
-        pip install --upgrade buildozer cython==0.29.36
-
     - name: Setup Runner Android SDK & Fix Paths
       run: |
         export ANDROID_HOME=$HOME/.android/sdk
+        
+        # ساختن ساختار کامل پوشه‌هایی که بیلدوزر مثل سگ گدا گدایی میکنه! 😂
         mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
         mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
         
-        # ساخت مسیرها و لینک sdkmanager برای جلوگیری از ارور بیلدوزر
+        # دانلود یا کپی ابزارها به جایی که بیلدوزر بتونه پیدا کنه
+        if [ -d "$ANDROID_HOME/cmdline-tools" ]; then
+          cp -r $ANDROID_HOME/cmdline-tools/* ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
+        fi
+        
+        # لینک دادن به مسیر باستانی مورد علاقه بیلدوزر
         if [ -f "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
           ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
         fi
-
-    - name: Build with Buildozer
-      run: |
-        buildozer -v android debug
-
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
